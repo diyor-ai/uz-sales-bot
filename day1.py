@@ -21,3 +21,9 @@ for row in data:
     print(f"   💰 Narxi: {row['Narxi']} so‘m")
     print(f"   📝 {row['Tavsif']}")
     print("-" * 60)
+
+def get_products():
+    creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
+    client = gspread.authorize(creds)
+    sheet = client.open(SHEET_NAME).sheet1
+    return sheet.get_all_records()
