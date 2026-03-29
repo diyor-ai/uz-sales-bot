@@ -1,0 +1,21 @@
+{
+  "welcome": "👋 Assalomu alaykum!\nQaysi shopga kirasiz?",
+  "choose_product": "📦 Mahsulotni tanlang:",
+  "search_prompt": "🔍 Qidiruv so'zini yozing:",
+  "found": "ta natija topildi",
+  "not_found": "❌ Topilmadi. Boshqacha yozing.",
+  "buy_confirm": "Sotib olasizmi?",
+  "yes": "✅ Ha",
+  "no": "❌ Yo'q",
+  "ask_name": "👤 Ismingizni kiriting:",
+  "ask_phone": "📞 Telefon raqamingiz:",
+  "ask_address": "📍 Manzilingizni kiriting:",
+  "share_phone": "📞 Raqamni ulashish",
+  "order_done": "✅ Buyurtmangiz qabul qilindi!\n\n🙏 Tez orada bog'lanamiz!",
+  "all_products": "📦 Barcha mahsulotlar",
+  "search": "🔍 Qidirish",
+  "back": "🔙 Orqaga",
+  "home": "🏠 Bosh sahifa",
+  "choose_lang": "🌍 Tilni tanlang:",
+  "choose_shop": "Qaysi shopga kirasiz?"
+}

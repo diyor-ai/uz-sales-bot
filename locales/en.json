@@ -1,0 +1,21 @@
+{
+  "welcome": "👋 Welcome!\nChoose your shop:",
+  "choose_product": "📦 Choose a product:",
+  "search_prompt": "🔍 Type a search word:",
+  "found": "results found",
+  "not_found": "❌ Not found. Try another word.",
+  "buy_confirm": "Do you want to buy?",
+  "yes": "✅ Yes",
+  "no": "❌ No",
+  "ask_name": "👤 Enter your name:",
+  "ask_phone": "📞 Your phone number:",
+  "ask_address": "📍 Enter your address:",
+  "share_phone": "📞 Share phone number",
+  "order_done": "✅ Order accepted!\n\n🙏 We will contact you soon!",
+  "all_products": "📦 All products",
+  "search": "🔍 Search",
+  "back": "🔙 Back",
+  "home": "🏠 Home",
+  "choose_lang": "🌍 Choose language:",
+  "choose_shop": "Choose your shop:"
+}
