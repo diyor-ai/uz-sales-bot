@@ -1,6 +1,5 @@
-gspread==6.1.2
-google-auth==2.29.0
-google-auth-oauthlib==1.2.0
-google-auth-httplib2==0.2.0
-python-telegram-bot==21.3
-python-dotenv==1.0.1
+python-telegram-bot==20.8
+python-dotenv
+gspread
+google-auth
+rapidfuzz
