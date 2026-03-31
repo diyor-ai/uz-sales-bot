@@ -16,10 +16,22 @@ load_dotenv()
 # ================== SOZLAMALAR ==================
 TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
 SCOPES           = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDENTIALS_FILE = "credentials.json"
 ORDERS_SHEET     = "Buyurtmalar"
 CONFIGS_DIR      = "configs"
 LOCALES_DIR      = "locales"
+
+# Google Credentials — Railway uchun
+def get_credentials():
+    # Railway da environment variable dan oladi
+    creds_json = os.getenv("GOOGLE_CREDENTIALS")
+    if creds_json:
+        return Credentials.from_service_account_info(
+            json.loads(creds_json), scopes=SCOPES
+        )
+    # Local da credentials.json dan oladi
+    return Credentials.from_service_account_file(
+        "credentials.json", scopes=SCOPES
+    )
 # ================================================
 
 
@@ -84,7 +96,7 @@ def get_products(sheet_name):
         if (now - _cache[sheet_name]["last_updated"]) < CACHE_TTL:
             return _cache[sheet_name]["products"]
     try:
-        creds  = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
+        creds = get_credentials()
         client = gspread.authorize(creds)
         sheet  = client.open(sheet_name).sheet1
         _cache[sheet_name] = {
@@ -124,7 +136,7 @@ def sanitize(text):
 # ================== SHEET ==================
 def save_order(sheet_name, order):
     try:
-        creds       = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
+        creds = get_credentials()
         client      = gspread.authorize(creds)
         spreadsheet = client.open(sheet_name)
         try:
