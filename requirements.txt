@@ -1,17 +1,6 @@
-# uz-sales-bot requirements
-# Python 3.10+
-
-# Google Sheets
-gspread==6.0.0
-google-auth==2.27.0
+gspread==6.1.2
+google-auth==2.29.0
 google-auth-oauthlib==1.2.0
 google-auth-httplib2==0.2.0
-
-# Telegram Bot
-python-telegram-bot==20.7
-
-# Environment variables
-python-dotenv==1.0.0
-
-# Data processing (optional - sizda pandas bor edi)
-# pandas==2.1.4
+python-telegram-bot==21.3
+python-dotenv==1.0.1
