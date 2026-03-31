@@ -73,16 +73,27 @@ def t(context, key):
 def load_clients():
     clients = {}
     try:
-        for file in os.listdir(CONFIGS_DIR):
-            if file.endswith(".json"):
-                with open(f"{CONFIGS_DIR}/{file}", encoding="utf-8") as f:
-                    config = json.load(f)
-                    clients[config["client_id"]] = config
+        # Railway: Environment Variable dan
+        i = 1
+        while True:
+            config_str = os.getenv(f"CLIENT_{i}")
+            if not config_str:
+                break
+            config = json.loads(config_str)
+            clients[config["client_id"]] = config
+            i += 1
+
+        # Local: configs/ papkadan
+        if not clients and os.path.exists(CONFIGS_DIR):
+            for file in os.listdir(CONFIGS_DIR):
+                if file.endswith(".json"):
+                    with open(f"{CONFIGS_DIR}/{file}", encoding="utf-8") as f:
+                        config = json.load(f)
+                        clients[config["client_id"]] = config
+
     except Exception as e:
         print(f"Client config load error: {e}")
     return clients
-
-CLIENTS = load_clients()
 # ===================================================
 
 
