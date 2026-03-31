@@ -1,4 +1,4 @@
-# bot.py — FINAL VERSION
+# bot.py — FINAL VERSION (Railway ready)
 
 import os
 import json
@@ -14,25 +14,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ================== SOZLAMALAR ==================
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN")
-SCOPES           = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-ORDERS_SHEET     = "Buyurtmalar"
-CONFIGS_DIR      = "configs"
-LOCALES_DIR      = "locales"
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+SCOPES         = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+ORDERS_SHEET   = "Buyurtmalar"
+CONFIGS_DIR    = "configs"
+LOCALES_DIR    = "locales"
+# ================================================
 
-# Google Credentials — Railway uchun
+
+# ================== CREDENTIALS ==================
 def get_credentials():
-    # Railway da environment variable dan oladi
     creds_json = os.getenv("GOOGLE_CREDENTIALS")
     if creds_json:
         return Credentials.from_service_account_info(
             json.loads(creds_json), scopes=SCOPES
         )
-    # Local da credentials.json dan oladi
     return Credentials.from_service_account_file(
         "credentials.json", scopes=SCOPES
     )
-# ================================================
+# =================================================
 
 
 # ================== RATE LIMITING ==================
@@ -94,6 +94,8 @@ def load_clients():
     except Exception as e:
         print(f"Client config load error: {e}")
     return clients
+
+CLIENTS = load_clients()
 # ===================================================
 
 
@@ -107,7 +109,7 @@ def get_products(sheet_name):
         if (now - _cache[sheet_name]["last_updated"]) < CACHE_TTL:
             return _cache[sheet_name]["products"]
     try:
-        creds = get_credentials()
+        creds  = get_credentials()
         client = gspread.authorize(creds)
         sheet  = client.open(sheet_name).sheet1
         _cache[sheet_name] = {
@@ -124,18 +126,11 @@ def get_products(sheet_name):
 # ================== VALIDATION ==================
 def validate_phone(phone):
     phone = phone.strip().replace(" ", "").replace("-", "")
-    patterns = [
-        r'^\+998\d{9}$',
-        r'^998\d{9}$',
-        r'^9\d{8}$'
-    ]
+    patterns = [r'^\+998\d{9}$', r'^998\d{9}$', r'^9\d{8}$']
     for pattern in patterns:
         if re.match(pattern, phone):
             if not phone.startswith("+"):
-                if phone.startswith("998"):
-                    phone = "+" + phone
-                else:
-                    phone = "+998" + phone
+                phone = "+998" + phone if not phone.startswith("998") else "+" + phone
             return phone
     return None
 
@@ -147,14 +142,14 @@ def sanitize(text):
 # ================== SHEET ==================
 def save_order(sheet_name, order):
     try:
-        creds = get_credentials()
+        creds       = get_credentials()
         client      = gspread.authorize(creds)
         spreadsheet = client.open(sheet_name)
         try:
             ws = spreadsheet.worksheet(ORDERS_SHEET)
-        except:
+        except Exception:
             ws = spreadsheet.add_worksheet(ORDERS_SHEET, rows=1000, cols=10)
-            ws.append_row(["Sana","Mahsulot","Narx","Ism","Telefon","Manzil","Til","Status"])
+            ws.append_row(["Sana", "Mahsulot", "Narx", "Ism", "Telefon", "Manzil", "Til", "Status"])
         ws.append_row([
             order["sana"], order["mahsulot"], order["narx"],
             order["ism"], order["telefon"], order["manzil"],
@@ -171,17 +166,17 @@ def save_order(sheet_name, order):
 async def notify_admin(context, order, admin_chat_id, shop_name):
     try:
         text = (
-            f"🆕 YANGI BUYURTMA!\n"
-            f"🏪 Shop : {shop_name}\n"
-            f"🌍 Til  : {order.get('til', 'uz').upper()}\n"
-            f"{'='*30}\n"
-            f"📦 Mahsulot : {order['mahsulot']}\n"
-            f"💰 Narx     : {order['narx']:,} so'm\n"
-            f"👤 Ism      : {order['ism']}\n"
-            f"📞 Telefon  : {order['telefon']}\n"
-            f"📍 Manzil   : {order['manzil']}\n"
-            f"🕐 Sana     : {order['sana']}\n"
-            f"{'='*30}"
+            f"\U0001f195 YANGI BUYURTMA!\n"
+            f"\U0001f3ea Shop : {shop_name}\n"
+            f"\U0001f30d Til  : {order.get('til', 'uz').upper()}\n"
+            f"{'=' * 30}\n"
+            f"\U0001f4e6 Mahsulot : {order['mahsulot']}\n"
+            f"\U0001f4b0 Narx     : {order['narx']:,} so'm\n"
+            f"\U0001f464 Ism      : {order['ism']}\n"
+            f"\U0001f4de Telefon  : {order['telefon']}\n"
+            f"\U0001f4cd Manzil   : {order['manzil']}\n"
+            f"\U0001f55c Sana     : {order['sana']}\n"
+            f"{'=' * 30}"
         )
         await context.bot.send_message(chat_id=admin_chat_id, text=text)
     except Exception as e:
@@ -193,8 +188,8 @@ async def notify_admin(context, order, admin_chat_id, shop_name):
 def search_products(query, products):
     query = query.lower()
     return [p for p in products if
-            query in str(p.get('Nomi','')).lower() or
-            query in str(p.get('Tavsif','')).lower()]
+            query in str(p.get('Nomi', '')).lower() or
+            query in str(p.get('Tavsif', '')).lower()]
 
 def format_price(price):
     return f"{int(price):,} so'm"
@@ -205,16 +200,16 @@ def get_client(context):
 
 def lang_keyboard():
     return InlineKeyboardMarkup([[
-        InlineKeyboardButton("🇺🇿 O'zbek",  callback_data="lang_uz"),
-        InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru"),
-        InlineKeyboardButton("🇬🇧 English", callback_data="lang_en"),
+        InlineKeyboardButton("\U0001f1fa\U0001f1ff O'zbek",  callback_data="lang_uz"),
+        InlineKeyboardButton("\U0001f1f7\U0001f1fa \u0420\u0443\u0441\u0441\u043a\u0438\u0439", callback_data="lang_ru"),
+        InlineKeyboardButton("\U0001f1ec\U0001f1e7 English", callback_data="lang_en"),
     ]])
 
 def shop_select_keyboard():
     keyboard = []
     for client_id, config in CLIENTS.items():
         keyboard.append([InlineKeyboardButton(
-            f"🏪 {config['shop_name']}",
+            f"\U0001f3ea {config['shop_name']}",
             callback_data=f"select_client_{client_id}"
         )])
     return InlineKeyboardMarkup(keyboard)
@@ -228,25 +223,16 @@ def main_menu_keyboard(context):
 
 
 # ================== HANDLERS ==================
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Til tanlash — har qanday holatda"""
     await update.message.reply_text(
-        "🌍 Tilni tanlang / Выберите язык / Choose language:",
+        "\U0001f30d Tilni tanlang / \u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u044f\u0437\u044b\u043a / Choose language:",
         reply_markup=lang_keyboard()
     )
-
-async def handle_unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Step yo'q bo'lsa → start ga yo'naltiradi"""
-    step = context.user_data.get('step')
-    if not step:
-        await start(update, context)
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    # RATE LIMIT
     if not rate_limit_check(update.effective_user.id):
         return
 
@@ -265,7 +251,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["client_id"] = client_id
         client = CLIENTS[client_id]
         await query.edit_message_text(
-            f"🏪 *{client['shop_name']}*\n\n{t(context, 'welcome')}",
+            f"\U0001f3ea *{client['shop_name']}*\n\n{t(context, 'welcome')}",
             reply_markup=main_menu_keyboard(context),
             parse_mode='Markdown'
         )
@@ -274,7 +260,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "back":
         client = get_client(context)
         await query.edit_message_text(
-            f"🏪 *{client['shop_name']}*",
+            f"\U0001f3ea *{client['shop_name']}*",
             reply_markup=main_menu_keyboard(context),
             parse_mode='Markdown'
         )
@@ -284,15 +270,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         client   = get_client(context)
         products = get_products(client['sheet_name'])
         if not products:
-            await query.edit_message_text("❌ Mahsulotlar topilmadi")
+            await query.edit_message_text("\u274c Mahsulotlar topilmadi")
             return
         keyboard = [[InlineKeyboardButton(
-            f"{p['Nomi']}  💰 {format_price(p['Narxi'])}",
+            f"{p['Nomi']}  \U0001f4b0 {format_price(p['Narxi'])}",
             callback_data=f"product_{p['ID']}"
         )] for p in products]
         keyboard.append([InlineKeyboardButton(t(context, "back"), callback_data="back")])
         await query.edit_message_text(
-            f"🏪 *{client['shop_name']}*\n{t(context, 'choose_product')}",
+            f"\U0001f3ea *{client['shop_name']}*\n{t(context, 'choose_product')}",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode='Markdown'
         )
@@ -305,9 +291,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         p = next((x for x in products if x['ID'] == product_id), None)
         if p:
             text = (
-                f"📦 *{p['Nomi']}*\n\n"
-                f"💰 {format_price(p['Narxi'])}\n"
-                f"📝 {p['Tavsif']}\n\n"
+                f"\U0001f4e6 *{p['Nomi']}*\n\n"
+                f"\U0001f4b0 {format_price(p['Narxi'])}\n"
+                f"\U0001f4dd {p['Tavsif']}\n\n"
                 f"{t(context, 'buy_confirm')}"
             )
             await query.edit_message_text(
@@ -339,12 +325,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await notify_admin(context, order, client['admin_chat_id'], client['shop_name'])
             await query.edit_message_text(
                 f"{t(context, 'order_done')}\n\n"
-                f"📦 {order['mahsulot']}\n"
-                f"💰 {format_price(order['narx'])}\n"
-                f"👤 {order['ism']}\n"
-                f"📞 {order['telefon']}\n"
-                f"📍 {order['manzil']}\n\n"
-                f"🙏 Tez orada bog'lanamiz!",
+                f"\U0001f4e6 {order['mahsulot']}\n"
+                f"\U0001f4b0 {format_price(order['narx'])}\n"
+                f"\U0001f464 {order['ism']}\n"
+                f"\U0001f4de {order['telefon']}\n"
+                f"\U0001f4cd {order['manzil']}\n\n"
+                f"\U0001f64f Tez orada bog'lanamiz!",
                 reply_markup=main_menu_keyboard(context)
             )
             context.user_data['step']          = None
@@ -380,7 +366,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data['order']['telefon'] = validated
             context.user_data['step'] = 'manzil'
             await update.message.reply_text(
-                f"✅ {validated}\n\n{t(context, 'ask_address')}",
+                f"\u2705 {validated}\n\n{t(context, 'ask_address')}",
                 reply_markup=ReplyKeyboardRemove()
             )
         else:
@@ -398,12 +384,12 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         found    = search_products(sanitize(text), products)
         if found:
             keyboard = [[InlineKeyboardButton(
-                f"{p['Nomi']}  💰 {format_price(p['Narxi'])}",
+                f"{p['Nomi']}  \U0001f4b0 {format_price(p['Narxi'])}",
                 callback_data=f"product_{p['ID']}"
             )] for p in found]
             keyboard.append([InlineKeyboardButton(t(context, "home"), callback_data="back")])
             await update.message.reply_text(
-                f"✅ *{len(found)} {t(context, 'found')}:*",
+                f"\u2705 *{len(found)} {t(context, 'found')}:*",
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 parse_mode='Markdown'
             )
@@ -421,7 +407,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
         )
 
-    # TELEFON (qo'lda yozsa)
+    # TELEFON
     elif step == 'telefon':
         validated = validate_phone(text)
         if validated:
@@ -444,15 +430,15 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['pending_order'] = order
 
         await update.message.reply_text(
-            f"📋 *{t(context, 'confirm_order')}*\n\n"
-            f"📦 {order['mahsulot']}\n"
-            f"💰 {format_price(order['narx'])}\n"
-            f"👤 {order['ism']}\n"
-            f"📞 {order['telefon']}\n"
-            f"📍 {order['manzil']}",
+            f"\U0001f4cb *{t(context, 'confirm_order')}*\n\n"
+            f"\U0001f4e6 {order['mahsulot']}\n"
+            f"\U0001f4b0 {format_price(order['narx'])}\n"
+            f"\U0001f464 {order['ism']}\n"
+            f"\U0001f4de {order['telefon']}\n"
+            f"\U0001f4cd {order['manzil']}",
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ Tasdiqlash",    callback_data="confirm_order")],
-                [InlineKeyboardButton("❌ Bekor qilish",  callback_data="cancel_order")]
+                [InlineKeyboardButton("\u2705 Tasdiqlash",   callback_data="confirm_order")],
+                [InlineKeyboardButton("\u274c Bekor qilish", callback_data="cancel_order")]
             ]),
             parse_mode='Markdown'
         )
@@ -462,7 +448,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    # Handlerlar — TARTIB MUHIM
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.CONTACT, message_handler))
